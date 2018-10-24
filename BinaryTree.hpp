@@ -42,7 +42,6 @@ namespace gv {
          * already contains the same data item.
          */
         bool insert(const E &item) noexcept {
-            // TODO: complete this function by invoking a private recursive function
             if(contains(item))
                 return false;
 
@@ -60,7 +59,6 @@ namespace gv {
         bool remove(const E& item) {
             if(isEmpty())
                 throw length_error("Nothing to remove!");
-            // TODO: complete this function by invoking a private recursive function
             return remove(item, root);
         }
 
@@ -69,7 +67,6 @@ namespace gv {
          * @param out destination of the print out
          */
         void printTree(ostream &targetStream = cout) const noexcept {
-            // TODO: complete this function by invoking a private recursive function
             // Be sure to use "targetStream" (and NOT cout) to print your data
             // For instance the following snippet would print "Hello"
             //   targetStream << "Hello";
@@ -82,7 +79,6 @@ namespace gv {
          * @throw length_error if the tree is empty
          */
         const E findMin() const {
-            // TODO: complete this function
             if(isEmpty())
                 throw length_error("Tree is empty");
             else {
@@ -100,7 +96,6 @@ namespace gv {
          * @throw length_error if the tree is empty
          */
         const E findMax() const {
-            // TODO: complete this function
             if(isEmpty())
                 throw length_error("Tree is empty");
             else {
@@ -118,7 +113,6 @@ namespace gv {
          * @return true if the item is stored in the tree, false otherwise
          */
         bool contains(const E &val) const noexcept {
-            // TODO: complete this function by invoking a private recursive function
             return contains(val, root);
         }
 
@@ -127,7 +121,6 @@ namespace gv {
          * @return
          */
         bool isEmpty() const noexcept {
-            // TODO: complete this function
             return root == nullptr;
         }
 
@@ -136,7 +129,6 @@ namespace gv {
          * @return
          */
         int numberOfNodes() const noexcept {
-            // TODO: complete this function by invoking a private recursive function
 //            return nodeCount; //apparently this is too easy
             return numberOfNodes(root);
         }
@@ -146,7 +138,6 @@ namespace gv {
          * @return
          */
         int numberOfLeaves() const noexcept {
-            // TODO: complete this function by invoking a private recursive function
             return numberOfLeaves(root);
         }
 
@@ -155,7 +146,6 @@ namespace gv {
          * @return
          */
         int numberOfFullNodes() const noexcept {
-            // TODO: complete this function by invoking a private recursive function
             return numberOfFullNodes(root);
         }
 
@@ -165,7 +155,6 @@ namespace gv {
          */
         vector<E> remove_leaves() noexcept {
             vector<E> prunedLeaves;
-            // TODO: complete this function by invoking a private recursive function
             remove_leaves(root, prunedLeaves);
             // include the vector (prunedLeaves) about in your function invocation
             return prunedLeaves;
@@ -177,8 +166,6 @@ namespace gv {
          */
         vector<E> levelOrder() const {
             vector<E> out;
-            // TODO: complete this function
-//            out.push_back(root->data);
             for (int i = 1; i <= getHeight(root)+1; ++i) {
                 levelOrder(root, i, out);
             }
@@ -196,8 +183,13 @@ namespace gv {
     private:
         struct Node;
 
-        // TODO: write your private functions here
-
+        /**************************************************************
+         * Makes a new node and inserts data into the tree using a
+         * current node
+         *
+         * @param x data to insert into tree
+         * @param t node used to find where to insert
+         **************************************************************/
         void insert( const E &x, unique_ptr<Node> & t ) {
             unique_ptr<Node> newNode = make_unique<Node>();
             newNode -> data = x;
@@ -211,6 +203,13 @@ namespace gv {
         }
 
 
+        /**************************************************************
+         * Recursively iterates through tree to remove desired data
+         *
+         * @param x data to remove from tree
+         * @param t current node to find where to remove
+         * @return true if removed, false if not found
+         *************************************************************/
         bool remove( const E & x, unique_ptr<Node>& t ) {
             //Return false if no item is found
             if( t == nullptr )
@@ -258,12 +257,20 @@ namespace gv {
                 //call deconstructor?
                 //delete oldNode;
             }
-            else //no children
+            else //no children, just get rid of it
                 t.reset();
                 //delete t;
             return true;
         }
 
+        /**************************************************************
+         * Recursively finds item that contains data and returns a bool
+         * to represent whether the item was found or not
+         *
+         * @param val value to find
+         * @param t current node to search
+         * @return true if found, false if reaches null (not found)
+         *************************************************************/
         bool contains(const E &val, const unique_ptr<Node>& t) const noexcept {
             if(t == nullptr) //if is null
                 return false;
@@ -275,6 +282,11 @@ namespace gv {
             return true; //otherwise we found it
         }
 
+        /**************************************************************
+         * Recursively counts the amount of nodes in the tree
+         * @param root the node to count
+         * @return the amount of nodes including root
+         *************************************************************/
         int numberOfNodes(const unique_ptr<Node>& root) const noexcept {
             if(root == nullptr)
                 return 0;
@@ -288,6 +300,12 @@ namespace gv {
                 return 1 + numberOfNodes(root->left);
         }
 
+        /**************************************************************
+         * Recursively determines the amount of leaves
+         *
+         * @param root the node to count from
+         * @return the amount of nodes without any children
+         *************************************************************/
         int numberOfLeaves(const unique_ptr<Node>& root) const noexcept {
             if(root == nullptr)
                 return 0;
@@ -297,6 +315,12 @@ namespace gv {
                 return numberOfLeaves(root-> left) + numberOfLeaves(root->right);
         }
 
+        /**************************************************************
+         * Recursively counts the amount of nodes that have 2 children
+         *
+         * @param current the node to count from
+         * @return the amount of nodes with 2 children
+         *************************************************************/
         int numberOfFullNodes(const unique_ptr<Node>& current) const noexcept {
             if(current == nullptr) //if current does not exist
                 return 0;
@@ -306,13 +330,23 @@ namespace gv {
                 return numberOfFullNodes(current->left) + numberOfFullNodes(current->right);
         }
 
+        /*************************************************************
+         * Recursively finds and removes nodes without any children
+         *
+         * @param current the node to remove leaves from
+         * @param out vector of leaf data
+         ************************************************************/
         void remove_leaves(unique_ptr<Node>& current, vector<E>& out) {
+            //exit if we are at a null
             if (current == nullptr)
                 return;
-            if(current->left != nullptr)
-                remove_leaves(current->left, out);
-            if(current->right != nullptr)
-                remove_leaves(current->right, out);
+            //go to left node
+            remove_leaves(current->left, out);
+
+            //go to right node
+            remove_leaves(current->right, out);
+
+            //if leaf, add to vector and delete pointer
             if (current->left == nullptr && current->right == nullptr) {
                 out.push_back(current->data);
                 current.reset();
@@ -320,6 +354,13 @@ namespace gv {
             }
         }
 
+        /**************************************************************
+         * Recursively adds data to vector in level order
+         *
+         * @param root the current node
+         * @param level the current height
+         * @param out vector to store data from nodes in level order
+         *************************************************************/
         void levelOrder(const unique_ptr<Node>& root, int level, vector<E>& out) const {
             if(root == nullptr)
                 return ;
@@ -331,6 +372,12 @@ namespace gv {
             }
         }
 
+        /**************************************************************
+         * Recursively determines the height of a tree
+         *
+         * @param current node to determine the height of
+         * @return the height of a tree
+         *************************************************************/
         int getHeight(const unique_ptr<Node>& current) const {
             if(current == nullptr)
                 return -1;
@@ -344,10 +391,19 @@ namespace gv {
                 return 1 + right;
         }
 
+        /**************************************************************
+         * Recursively adds data to ostream using in order traversal
+         *
+         * @param current node to traverse and add to stream
+         * @param target stream to insert data to
+         **************************************************************/
         void printInOrder(const unique_ptr<Node>& current, ostream& target) const noexcept {
+            //move left
             if(current->left != nullptr)
                 printInOrder(current->left, target);
+            //print current
             target << current->data << " ";
+            //move right
             if(current->right != nullptr)
                 printInOrder(current->right, target);
         }
