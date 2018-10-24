@@ -73,6 +73,7 @@ namespace gv {
             // Be sure to use "targetStream" (and NOT cout) to print your data
             // For instance the following snippet would print "Hello"
             //   targetStream << "Hello";
+            printInOrder(root, targetStream);
         }
 
         /**
@@ -211,9 +212,10 @@ namespace gv {
 
 
         bool remove( const E & x, unique_ptr<Node>& t ) {
+            //Return false if no item is found
             if( t == nullptr )
                 return false;
-            // Item not found; do nothing
+            // Iterate through to item to remove
             if( x < t->data )
                 return remove( x, t->left );
             else if( t->data < x )
@@ -222,24 +224,45 @@ namespace gv {
                 && t->left != nullptr
                 && t->right != nullptr ) // Two children
             {
-//                gv::BinaryTree<string> subtree;
-//                subtree.root = t->right;
-//                t->data = subtree.findMin();
+
+                //find the min of the right subtree and store it
+                Node *tmp = t->right.get();
+                E min;
+                while(tmp->left != nullptr) {
+                    tmp = tmp->left.get();
+                }
+                min = tmp->data;
+
+                //replace the data of the node to delete
+                t->data = min;
+
+                //remove the min data node since it was "moved"
                 return remove( t->data, t->right );
             }
+
             else if (t->data == x
-            && (t->left == nullptr ^ t->right == nullptr))
+            && (t->left == nullptr ^ t->right == nullptr)) //one child
             {
+                //make a node
                 unique_ptr<Node> oldNode = make_unique<Node>();
-                        oldNode = move(t);
+
+                //set that node equal to the node to remove
+                oldNode = move(t);
+
+                //set the node to remove to either its left or right child
                 t = ( oldNode->left != nullptr ) ? move(oldNode->left) : move(oldNode->right);
-                delete oldNode.release();
+
+                //delete the unneeded node
+                oldNode.reset();
+
+                //call deconstructor?
+                //delete oldNode;
             }
             else //no children
-                delete t.release();
+                t.reset();
+                //delete t;
             return true;
         }
-
 
         bool contains(const E &val, const unique_ptr<Node>& t) const noexcept {
             if(t == nullptr) //if is null
@@ -283,19 +306,18 @@ namespace gv {
                 return numberOfFullNodes(current->left) + numberOfFullNodes(current->right);
         }
 
-        vector<E> remove_leaves(unique_ptr<Node>& root, vector<E> out) {
-            if (root == nullptr)
-                return out;
-            if (root->left == nullptr && root->right == nullptr) {
-                out.push_back(root->data);
-                root.reset();
-//                delete root;
-                return out;
+        void remove_leaves(unique_ptr<Node>& current, vector<E>& out) {
+            if (current == nullptr)
+                return;
+            if(current->left != nullptr)
+                remove_leaves(current->left, out);
+            if(current->right != nullptr)
+                remove_leaves(current->right, out);
+            if (current->left == nullptr && current->right == nullptr) {
+                out.push_back(current->data);
+                current.reset();
+//                delete current;
             }
-            if(root->left != nullptr)
-                return remove_leaves(root->left, out);
-            if(root-> right != nullptr)
-                return remove_leaves(root->right, out);
         }
 
         void levelOrder(const unique_ptr<Node>& root, int level, vector<E>& out) const {
@@ -320,6 +342,14 @@ namespace gv {
                 return 1 + left;
             else
                 return 1 + right;
+        }
+
+        void printInOrder(const unique_ptr<Node>& current, ostream& target) const noexcept {
+            if(current->left != nullptr)
+                printInOrder(current->left, target);
+            target << current->data << " ";
+            if(current->right != nullptr)
+                printInOrder(current->right, target);
         }
 
         static int nodeCount;
